@@ -15,6 +15,9 @@ class Main(QMainWindow, example_ui.Ui_MainWindow):
     def onClick(self):
         global userID
         userID = self.lineEdit_2.text()
+        welcome = "Welcome to Chat Room ! " + userID
+        self.textBrowser.append(welcome)
+        self.textBrowser.update()
         self.lineEdit_2.setEnabled(False)
         self.pushButton_2.setEnabled(False)
         self.pushButton.setEnabled(True)
