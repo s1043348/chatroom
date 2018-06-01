@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import (QMessageBox, QLineEdit)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -37,6 +38,7 @@ class Ui_MainWindow(object):
         self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_3.setGeometry(QtCore.QRect(120, 69, 113, 31))
         self.lineEdit_3.setObjectName("lineEdit_3")
+        self.lineEdit_3.setEchoMode(QLineEdit.Password)
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(284, 72, 91, 31))
         self.pushButton_2.setObjectName("pushButton_2")
@@ -71,4 +73,3 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Change password"))
         self.pushButton_2.setText(_translate("MainWindow", "update password"))
         self.pushButton_3.setText(_translate("MainWindow", "Send"))
-
