@@ -2,11 +2,62 @@
 import socket
 import threading
 import datetime
+import sys
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+import windowserver
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from time import gmtime, strftime
 global count
 global id
-class Server:
+
+class DataBaseChatRoom:
+    def __init__(self):
+        self.client = MongoClient('localhost', 27017)  # 比较常用
+        self.database = self.client["ChatRoom"]  # SQL: Database Name
+        self.collection = self.database["user"]  # SQL: Table Name
+
+    def loadData(self):
+        pass
+        return None
+
+    # delete user by uname
+    # dbChatRoom.deleteUser(['A'])
+    def deleteUser(self, unameList):
+        self.collection.remove({'uname':unameList})
+
+    # insert user
+    # dbChatRoom.insertUser(uname='A', upwd='A')
+    def insertUser(self, uname, upwd):
+        self.collection.insert_one({'uname':uname,'upwd':upwd})
+
+
+    def updataUser(self, uname=None, upwd=None):
+        pass
+        return 'successful'
+
+    # check checkUserExist
+    def checkUserExist(self, uname='A'):
+        pass
+        return False
+
+    # query user bu uname
+    # dbChatRoom.queryByuname(uname='A', upwd='A')
+    def queryByuname(self, uname='A', upwd='A'):
+        pass
+        return False
+
+    # Init database
+    # dbChatRoom.Initdatabase()
+    def Initdatabase(self):
+        pass
+
+    def colseClient(self):
+        self.client.close()
+class Server(QMainWindow, windowserver.Ui_MainWindow):
     def __init__(self, host, port):
+        super(self.__class__, self).__init__()
+        self.setupUi(self)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock = sock
         self.sock.bind((host, port))
@@ -14,6 +65,7 @@ class Server:
         print('Server', socket.gethostbyname(host), 'listening ...')
         self.mylist = list()
         self.namelist = list()
+        self.pushButton.clicked.connect(self.Input)
 
     def checkConnection(self):
         global count
@@ -85,11 +137,22 @@ class Server:
 
                 myconnection.close()
                 return
+    def Input(self):
+        dbChatRoom = DataBaseChatRoom()
+        dbChatRoom.Initdatabase()
+        dbChatRoom.colseClient()
+        user = self.lineEdit.text()
+        print(user)
+        psw = self.lineEdit_2.text()
+        dbChatRoom.insertUser(user,psw)
+
+
+
 
 
 def main():
     #s = Server('140.138.145.9', 5550)#by Ping
-    s = Server('localhost', 5550)#by ChenPo
+    s = Server('140.138.145.16', 5550)#by ChenPo
     global count
     global id
     id = list()
@@ -97,6 +160,9 @@ def main():
     while True:
         s.checkConnection()
 
-
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    MainWindow = Server('140.138.145.16', 5550)
+    MainWindow.show()
+    sys.exit(app.exec_())
     main()
