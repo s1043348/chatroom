@@ -14,25 +14,25 @@ class Ui_MainWindow(object):
         MainWindow.resize(355, 532)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label = QtWidgets.QLabel(self.centralwidget)   #Nickname
         self.label.setGeometry(QtCore.QRect(10, 10, 47, 12))
         self.label.setObjectName("label")
-        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget) #User name
         self.lineEdit.setGeometry(QtCore.QRect(60, 10, 113, 20))
         self.lineEdit.setObjectName("lineEdit")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget) #password
         self.label_2.setGeometry(QtCore.QRect(180, 10, 47, 12))
         self.label_2.setObjectName("label_2")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)   #User pswd
         self.lineEdit_2.setGeometry(QtCore.QRect(230, 10, 113, 20))
         self.lineEdit_2.setObjectName("lineEdit_2")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget) #Add button
         self.pushButton.setGeometry(QtCore.QRect(0, 30, 351, 23))
         self.pushButton.setObjectName("pushButton")
         self.listView = QtWidgets.QListView(self.centralwidget)
         self.listView.setGeometry(QtCore.QRect(10, 60, 331, 192))
         self.listView.setObjectName("listView")
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)   #del button
         self.pushButton_2.setGeometry(QtCore.QRect(0, 460, 351, 23))
         self.pushButton_2.setObjectName("pushButton_2")
         MainWindow.setCentralWidget(self.centralwidget)
