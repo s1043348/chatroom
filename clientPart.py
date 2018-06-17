@@ -28,9 +28,9 @@ class DataBaseChatRoom:
 
     # insert user
     # dbChatRoom.insertUser(uname='A', upwd='A')
-    def insertUser(self, uname=None, upwd=None):
-        pass
-        return 'successful'
+    def insertUser(self, uname, upwd):
+        self.collection.insert_one({'uname':uname, 'upwd':upwd})
+        print("Client: user added!!")
 
     def updataUser(self, uname, upwd):
         temp = self.collection.find_one({'uname': uname})
@@ -52,17 +52,10 @@ class DataBaseChatRoom:
     # Init database
     # dbChatRoom.Initdatabase()
     def Initdatabase(self):
-        userList = []
-        userList.append({'uname': 'A', 'upwd': 'A'})
-        userList.append({'uname': 'B', 'upwd': 'B'})
-        userList.append({'uname': 'C', 'upwd': 'C'})
-        userList.append({'uname': 'D', 'upwd': 'D'})
-        userList.append({'uname': 'E', 'upwd': 'E'})
-        self.collection.insert_many(userList)
+        pass
 
     def colseClient(self):
         self.client.close()
-
 
 
 class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
@@ -70,12 +63,13 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
     def __init__(self, host, port):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        socktemp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    ##by ChenPo
-        self.sock = socktemp    ##by ChenPo
-        self.sock.connect((host, port)) ##by ChenPo
+        socktemp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    #by ChenPo
+        self.sock = socktemp    #by ChenPo
+        self.sock.connect((host, port)) #by ChenPo
         self.sock.send(b'1')    ##by ChenPo
         self.pushButton_3.setText("Send") ##by ChenPo
         self.pushButton_3.setEnabled(False)#by ChenPo
+        self.pushButton_2.setEnabled(False)#by ChenPo
         self.pushButton.clicked.connect(self.onClick)#by ChenPo
         self.pushButton_2.clicked.connect(self.updateclick)
         self.pushButton_3.clicked.connect(self.send)#by ChenPo
@@ -83,15 +77,21 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
     def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
         dbChatRoom.updataUser(self.lineEdit.text(), self.lineEdit_3.text())
+        self.lineEdit_3.setText("")
 
     def onClick(self):
         global userID
-        userID = self.lineEdit_2.text()
+        dbChatRoom = DataBaseChatRoom()
+        userID = self.lineEdit.text()
+        userPSWD = self.lineEdit_2.text()
+        dbChatRoom.insertUser(userID, userPSWD) #update database by client
         self.sock.send(userID.encode())
         self.textBrowser.update()
-        self.lineEdit_2.setEnabled(False)
-        self.pushButton.setEnabled(False)
-        self.pushButton_3.setEnabled(True)
+        self.lineEdit_2.setEnabled(False)   #pswd lineEdit disabled
+        self.lineEdit.setEnabled(False) #username lineEdit disabled
+        self.pushButton.setEnabled(False)   #Login button disabled
+        self.pushButton_3.setEnabled(True)  #Send button enabled
+        self.pushButton_2.setEnabled(True)  #Change pswd enabled
         th2 = threading.Thread(target=self.recv)#by ChenPo
         th2.setDaemon(True)#by ChenPo
         th2.start()#by ChenPo
@@ -103,16 +103,15 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             self.textBrowser.update()
 
     def send(self):
-        text = self.lineEdit.text()#by ChenPo
+        text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
         self.sock.send(text.encode())   ##by ChenPo
         text = text + ' : ' + userID#by ChenPo
         text = "{: >70}".format(text)#by ChenPo
         self.textBrowser.append(text)#by ChenPo
         self.textBrowser.update()#by ChenPo
-        self.lineEdit.setText("")#by ChenPo
+        self.lineEdit_4.setText("")#by ChenPo
 
-
-
+"""
 def main():#by ChenPo
     user = Main('localhost', 5550)
     th1 = threading.Thread(target=user.send)
@@ -122,11 +121,11 @@ def main():#by ChenPo
         i.setDaemon(True)
         i.start()
     i.join()
-
+"""
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     MainWindow = Main('localhost', 5550)
     MainWindow.show()
     sys.exit(app.exec_())
-    main()#by ChenPo
+    #main()#by ChenPo
