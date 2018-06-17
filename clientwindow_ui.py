@@ -9,47 +9,48 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QMessageBox, QLineEdit)
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(389, 546)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label = QtWidgets.QLabel(self.centralwidget)   #目前聊天室 x 人
         self.label.setGeometry(QtCore.QRect(20, 10, 351, 16))
         self.label.setAutoFillBackground(False)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget) #Nickname
         self.label_2.setGeometry(QtCore.QRect(0, 40, 51, 16))
         self.label_2.setObjectName("label_2")
-        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget) #user name
         self.lineEdit.setGeometry(QtCore.QRect(60, 30, 113, 31))
         self.lineEdit.setObjectName("lineEdit")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget) #user pswd
         self.lineEdit_2.setGeometry(QtCore.QRect(180, 30, 113, 31))
         self.lineEdit_2.setObjectName("lineEdit_2")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget) #login
         self.pushButton.setGeometry(QtCore.QRect(300, 30, 75, 31))
         self.pushButton.setObjectName("pushButton")
-        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3 = QtWidgets.QLabel(self.centralwidget) #change pswd
         self.label_3.setGeometry(QtCore.QRect(0, 80, 91, 16))
         self.label_3.setObjectName("label_3")
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)#user change pswd
         self.lineEdit_3.setGeometry(QtCore.QRect(120, 69, 113, 31))
         self.lineEdit_3.setObjectName("lineEdit_3")
         self.lineEdit_3.setEchoMode(QLineEdit.Password)
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)   #update pswd
         self.pushButton_2.setGeometry(QtCore.QRect(284, 72, 91, 31))
         self.pushButton_2.setObjectName("pushButton_2")
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
         self.textBrowser.setGeometry(QtCore.QRect(10, 110, 371, 311))
         self.textBrowser.setObjectName("textBrowser")
-        self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)   #send message
         self.lineEdit_4.setGeometry(QtCore.QRect(10, 430, 371, 31))
         self.lineEdit_4.setInputMask("")
         self.lineEdit_4.setObjectName("lineEdit_4")
-        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)   #send button
         self.pushButton_3.setGeometry(QtCore.QRect(10, 470, 371, 31))
         self.pushButton_3.setObjectName("pushButton_3")
         MainWindow.setCentralWidget(self.centralwidget)
