@@ -13,7 +13,7 @@ class Example(QWidget):
     def __init__(self):
         super(Example, self).__init__()
         # resize設定寬高，move設定位置
-        self.resize(400, 300)
+        self.resize(1000, 600)
         self.move(100, 100)
         self.setWindowTitle("簡單的畫板4.0")
         # setMouseTracking設定為False，否則不按下滑鼠時也會跟蹤滑鼠事件
