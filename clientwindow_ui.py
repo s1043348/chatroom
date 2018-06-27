@@ -54,6 +54,7 @@ class Ui_MainWindow(object):
         self.lineEdit_2.setFont(QFont("Lucida console", 12))
         self.lineEdit_2.setGeometry(QtCore.QRect(120, 65, 110, 30))
         self.lineEdit_2.setObjectName("lineEdit_2")
+        self.lineEdit_2.setEchoMode(QLineEdit.Password)
 
         self.label_3 = QtWidgets.QLabel(self.centralwidget)  # input change pswd
         self.label_3.setFont(QFont("Lucida console", 10))
