@@ -3,6 +3,9 @@ import clientwindow_ui
 import sys
 import threading
 import socket
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QEventLoop
+from PyQt5.QtWidgets import *
+
 
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -36,13 +39,32 @@ class DataBaseChatRoom:
         temp = self.collection.find_one({'uname': uname})
         temp['upwd'] = upwd
         self.collection.save(temp)
+        msg = QMessageBox()  ## by ping
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("密碼修改成功")
+        msg.setWindowTitle("密碼修改成功")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
         return 'successful'
 
     # check checkUserExist
-    def checkUserExist(self, uname='A'):
-        pass
+    def checkUserExist(self, uname):
+        if self.collection.find({'uname': uname}).count() > 0:
+            return True
         return False
 
+        # check checkUserExist
+    def checkAccountAandPassword(self, uname, upwd):  # by ping
+        if self.collection.find({'uname': uname, 'upwd':upwd}).count() > 0:
+            return True
+        else:
+            msg = QMessageBox()  ## by ping
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("您輸入的帳號已存在 且帳號與密碼不匹配")
+            msg.setWindowTitle("錯誤")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+        return False
     # query user bu uname
     # dbChatRoom.queryByuname(uname='A', upwd='A')
     def queryByuname(self, uname='A', upwd='A'):
@@ -56,8 +78,22 @@ class DataBaseChatRoom:
 
     def colseClient(self):
         self.client.close()
+"""
+class DataCaptureThread(QThread):  #by ping
+     def collectProcessData(self):
+         print("Collecting Process Data")
 
+     def __init__(self, *args, **kwargs):
+         QThread.__init__(self, *args, **kwargs)
+         self.dataCollectionTimer = QTimer()
+         self.dataCollectionTimer.moveToThread(self)
+         self.dataCollectionTimer.timeout.connect(self.collectProcessData)
 
+     def run(self):
+         self.dataCollectionTimer.start(1000)
+         loop = QEventLoop()
+         loop.exec_()
+"""
 class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def __init__(self, host, port):
@@ -70,7 +106,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.pushButton_3.setText("Send") ##by ChenPo
         self.pushButton_3.setEnabled(False)#by ChenPo
         self.pushButton_2.setEnabled(False)#by ChenPo
-        self.pushButton.clicked.connect(self.onClick)#by ChenPo
+        self.pushButton.clicked.connect(self.onClick)#by ChenPo ##這顆是login
         self.pushButton_2.clicked.connect(self.updateclick)
         self.pushButton_3.clicked.connect(self.send)#by ChenPo
 
@@ -84,18 +120,24 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         dbChatRoom = DataBaseChatRoom()
         userID = self.lineEdit.text()
         userPSWD = self.lineEdit_2.text()
-        dbChatRoom.insertUser(userID, userPSWD) #update database by client
-        self.sock.send(userID.encode())
-        self.textBrowser.update()
-        self.lineEdit_2.setEnabled(False)   #pswd lineEdit disabled
-        self.lineEdit.setEnabled(False) #username lineEdit disabled
-        self.pushButton.setEnabled(False)   #Login button disabled
-        self.pushButton_3.setEnabled(True)  #Send button enabled
-        self.pushButton_2.setEnabled(True)  #Change pswd enabled
-        th2 = threading.Thread(target=self.recv)#by ChenPo
-        th2.setDaemon(True)#by ChenPo
-        th2.start()#by ChenPo
-
+        GameBegin = False  ## by ping
+        if dbChatRoom.checkUserExist(userID):
+            if(dbChatRoom.checkAccountAandPassword(userID, userPSWD)):
+                GameBegin = True
+        else:
+            dbChatRoom.insertUser(userID, userPSWD) #update database by client
+            GameBegin = True
+        if GameBegin:
+            self.sock.send(userID.encode())
+            self.textBrowser.update()
+            self.lineEdit_2.setEnabled(False)   #pswd lineEdit disabled
+            self.lineEdit.setEnabled(False) #username lineEdit disabled
+            self.pushButton.setEnabled(False)   #Login button disabled
+            self.pushButton_3.setEnabled(True)  #Send button enabled
+            self.pushButton_2.setEnabled(True)  #Change pswd enabled
+            th2 = threading.Thread(target=self.recv)#by ChenPo
+            th2.setDaemon(True)#by ChenPo
+            th2.start()#by ChenP
     def recv(self):#by ChenPo
         while True:
             otherword = self.sock.recv(1024)
@@ -110,6 +152,10 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.textBrowser.append(text)#by ChenPo
         self.textBrowser.update()#by ChenPo
         self.lineEdit_4.setText("")#by ChenPo
+
+    remaintime = 17
+
+
 
 """
 def main():#by ChenPo
