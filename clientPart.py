@@ -84,13 +84,11 @@ class DataBaseChatRoom:
 class DataCaptureThread(QThread):  #by ping
      def collectProcessData(self):
          print("Collecting Process Data")
-
      def __init__(self, *args, **kwargs):
          QThread.__init__(self, *args, **kwargs)
          self.dataCollectionTimer = QTimer()
          self.dataCollectionTimer.moveToThread(self)
          self.dataCollectionTimer.timeout.connect(self.collectProcessData)
-
      def run(self):
          self.dataCollectionTimer.start(1000)
          loop = QEventLoop()
@@ -158,6 +156,26 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
+                elif '+' in buf:
+                    posxy = self.sock.recv(1024).decode()
+                    painter = QPainter()
+                    painter.begin(self)
+                    pen = QPen(Qt.black, 2, Qt.SolidLine)
+                    painter.setPen(pen)
+                    if len(self.pos_xy) > 1:
+                        point_start = self.pos_xy[0]
+                        for pos_tmp in self.pos_xy:
+                            point_end = pos_tmp
+                            if point_end == (-1, -1):
+                                point_start = (-1, -1)
+                                continue
+                            if point_start == (-1, -1):
+                                point_start = point_end
+                                continue
+
+                            painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
+                            point_start = point_end
+                    painter.end()
                 else:
                     self.textBrowser.append(buf)
                     self.textBrowser.update()
@@ -192,7 +210,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             painter.begin(self)
             pen = QPen(Qt.black, 2, Qt.SolidLine)
             painter.setPen(pen)
-
+            self.sock.send(b'+')
+            self.sock.send(str(self.pos_xy).encode())
             if len(self.pos_xy) > 1:
                 point_start = self.pos_xy[0]
                 for pos_tmp in self.pos_xy:
@@ -220,6 +239,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             pos_test = (-1, -1)
             self.pos_xy.append(pos_test)
             self.update()
+
+
 
 
 """
