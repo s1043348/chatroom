@@ -5,7 +5,9 @@ import threading
 import socket
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QEventLoop
 from PyQt5.QtWidgets import *
-
+from PyQt5.QtWidgets import (QApplication, QWidget)
+from PyQt5.QtGui import (QPainter, QPen)
+from PyQt5.QtCore import Qt
 
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -110,6 +112,10 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.pushButton_2.clicked.connect(self.updateclick)
         self.pushButton_3.clicked.connect(self.send)#by ChenPo
         self.pushButton_ans.clicked.connect(self.ans)  # by ChenPo
+        self.setMouseTracking(False)
+        # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
+        self.pos_xy = []
+        self.contorl = False
 
     def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
@@ -143,7 +149,6 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         while True:
             try:
                 buf = self.sock.recv(1024).decode()
-                #print(buf)
                 #made by ping
                 if '*' in buf:
                     messageword = self.sock.recv(1024)
@@ -153,11 +158,15 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
+                else:
+                    self.textBrowser.append(buf)
+                    self.textBrowser.update()
                 buf = None
             except:
                 pass
 
     def send(self):
+        self.contorl = True
         text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
         self.sock.send(b'*')#made by ping
         self.sock.send(text.encode())   ##by ChenPo
@@ -177,7 +186,40 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.lineEdit_ans.setText("")  # by ping
 
 
+    def paintEvent(self, event):
+        if self.contorl:
+            painter = QPainter()
+            painter.begin(self)
+            pen = QPen(Qt.black, 2, Qt.SolidLine)
+            painter.setPen(pen)
 
+            if len(self.pos_xy) > 1:
+                point_start = self.pos_xy[0]
+                for pos_tmp in self.pos_xy:
+                    point_end = pos_tmp
+                    if point_end == (-1, -1):
+                        point_start = (-1, -1)
+                        continue
+                    if point_start == (-1, -1):
+                        point_start = point_end
+                        continue
+
+                    painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
+                    point_start = point_end
+            painter.end()
+
+    def mouseMoveEvent(self, event):
+        if self.contorl:
+            pos_tmp = (event.pos().x(), event.pos().y())
+            # pos_tmp新增到self.pos_xy中
+            self.pos_xy.append(pos_tmp)
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        if self.contorl:
+            pos_test = (-1, -1)
+            self.pos_xy.append(pos_test)
+            self.update()
 
 
 """
