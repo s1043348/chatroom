@@ -141,13 +141,25 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             th2.start()#by ChenP
     def recv(self):#by ChenPo
         while True:
-            otherword = self.sock.recv(1024)
-            self.textBrowser.append(otherword.decode())
-            self.textBrowser.update()
+            try:
+                buf = self.sock.recv(1024).decode()
+                #print(buf)
+                #made by ping
+                if '*' in buf:
+                    messageword = self.sock.recv(1024)
+                    self.textBrowser.append(messageword.decode())
+                    self.textBrowser.update()
+                elif '#' in buf:
+                    answord = self.sock.recv(1024)
+                    self.textBrowser_ans.append(answord.decode())
+                    self.textBrowser_ans.update()
+                buf = None
+            except:
+                pass
 
     def send(self):
         text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
-        self.sock.send(b'1')
+        self.sock.send(b'*')#made by ping
         self.sock.send(text.encode())   ##by ChenPo
         text = userID + ' : ' + text#by ChenPo
         #text = "{: >70}".format(text)#by ChenPo
@@ -157,11 +169,11 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def ans(self):
         text = self.lineEdit_ans.text()  # Send message lineEdit by ping
-        self.sock.send(b'2')
+        self.sock.send(b'#')#made by ping
         self.sock.send(text.encode())  ##by ping
         text = userID + ' : ' + text  # by ping
-        self.textBrowser.append(text)  # by ping
-        self.textBrowser.update()  # by ping
+        self.textBrowser_ans.append(text)  # by ping
+        self.textBrowser_ans.update()  # by ping
         self.lineEdit_ans.setText("")  # by ping
 
 
