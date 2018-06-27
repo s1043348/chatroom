@@ -109,6 +109,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.pushButton.clicked.connect(self.onClick)#by ChenPo ##這顆是login
         self.pushButton_2.clicked.connect(self.updateclick)
         self.pushButton_3.clicked.connect(self.send)#by ChenPo
+        self.pushButton_ans.clicked.connect(self.ans)  # by ChenPo
 
     def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
@@ -146,14 +147,24 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def send(self):
         text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
+        self.sock.send(b'1')
         self.sock.send(text.encode())   ##by ChenPo
-        text = text + ' : ' + userID#by ChenPo
-        text = "{: >70}".format(text)#by ChenPo
+        text = userID + ' : ' + text#by ChenPo
+        #text = "{: >70}".format(text)#by ChenPo
         self.textBrowser.append(text)#by ChenPo
         self.textBrowser.update()#by ChenPo
         self.lineEdit_4.setText("")#by ChenPo
 
-    remaintime = 17
+    def ans(self):
+        text = self.lineEdit_ans.text()  # Send message lineEdit by ping
+        self.sock.send(b'2')
+        self.sock.send(text.encode())  ##by ping
+        text = userID + ' : ' + text  # by ping
+        self.textBrowser.append(text)  # by ping
+        self.textBrowser.update()  # by ping
+        self.lineEdit_ans.setText("")  # by ping
+
+
 
 
 
