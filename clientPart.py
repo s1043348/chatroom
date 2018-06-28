@@ -158,8 +158,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
                 elif '+' in buf:
-                    posxy = self.sock.recv(10240000).decode()
-                    self.pos_xy = self.pos_xy + eval(posxy)
+                    posxy = self.sock.recv(1024000000).decode()
+                    self.pos_xy = eval(posxy)
                     painter = QPainter()
                     painter.begin(self)
                     pen = QPen(Qt.black, 2, Qt.SolidLine)
@@ -178,6 +178,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                             painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
                             point_start = point_end
                     painter.end()
+                    self.update()
 
                 else:
                     self.textBrowser.append(buf)
