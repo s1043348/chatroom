@@ -254,7 +254,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.lineEdit_ans.setText("")  # by ping
 
     def paintEvent(self, event):
-        if self.contorl:
+        if True:
             painter = QPainter()
             painter.begin(self)
             pen = QPen(Qt.black, 2, Qt.SolidLine)
