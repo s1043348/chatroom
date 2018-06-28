@@ -156,7 +156,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
-                elif '+' in buf:
+                elif '@' in buf:
                     posxy = self.sock.recv(1024).decode()
                     painter = QPainter()
                     painter.begin(self)
@@ -187,6 +187,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.contorl = True
         text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
         self.sock.send(b'*')#made by ping
+        if text == '':           #by ping
+            text = ' '
         self.sock.send(text.encode())   ##by ChenPo
         text = userID + ' : ' + text#by ChenPo
         #text = "{: >70}".format(text)#by ChenPo
@@ -196,6 +198,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def ans(self):
         text = self.lineEdit_ans.text()  # Send message lineEdit by ping
+        if text == '': #by ping
+            text = ' '
         self.sock.send(b'#')#made by ping
         self.sock.send(text.encode())  ##by ping
         text = userID + ' : ' + text  # by ping
@@ -210,8 +214,6 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             painter.begin(self)
             pen = QPen(Qt.black, 2, Qt.SolidLine)
             painter.setPen(pen)
-            self.sock.send(b'+')
-            self.sock.send(str(self.pos_xy).encode())
             if len(self.pos_xy) > 1:
                 point_start = self.pos_xy[0]
                 for pos_tmp in self.pos_xy:
@@ -239,6 +241,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             pos_test = (-1, -1)
             self.pos_xy.append(pos_test)
             self.update()
+            self.sock.send(b'@')
+            self.sock.send(str(self.pos_xy).encode())
 
 
 
