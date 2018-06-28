@@ -56,12 +56,6 @@ class DataBaseChatRoom:
     def Initdatabase(self):
         self.collection.delete_many({})
         userList = []
-        userList.append({'uname': 'A', 'upwd': 'A'})
-        userList.append({'uname': 'B', 'upwd': 'B'})
-        userList.append({'uname': 'C', 'upwd': 'C'})
-        userList.append({'uname': 'D', 'upwd': 'D'})
-        userList.append({'uname': 'E', 'upwd': 'E'})
-        self.collection.insert_many(userList)
         print("Server: initialize database!!")
 
     def colseClient(self):
@@ -278,6 +272,22 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
     def DelUser(self):  #by ChenPo, not done yet
         dbChatRoom = DataBaseChatRoom()
+        for i in range(self.model.rowCount()):
+            if self.model.item(i).checkState():
+                print("123")
+                print(self.model.item(i).row())
+                del namelist[int(i)]
+                print(namelist)
+                dbChatRoom.deleteUser(self.model.item(i).text())
+                print(self.model.item(i).text())
+        self.model.clear()
+        for task in namelist:
+            item = QStandardItem(task)
+            item.setFont(QFont("微軟正黑體", 20))
+            item.setCheckState(0)
+            item.setCheckable(True)
+            self.model.appendRow(item)
+            self.listView.setModel(self.model)
 
 
 def main():  # by ChenPo
