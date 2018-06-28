@@ -236,7 +236,6 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                 pass
 
     def send(self):
-        self.count_thread.start()
         text = self.lineEdit_4.text()  # Send message lineEdit by ChenPo
         if text == '':
             text = ' '
