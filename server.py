@@ -209,7 +209,8 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                 return
 
     def QuestionInput(self):#問題傳送
-        self.question = "****Please paint : "+self.lineEdit_question.text()+"****"
+        self.questiontext = "****Please paint : "+self.lineEdit_question.text()+"****"
+        self.question = self.lineEdit_question.text()
         notu="****Question****"
         self.lineEdit_question.setText('')
         run=0
@@ -218,7 +219,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
             for c in self.mylist:
                 if run==numrandom:#找到選中的人
                     c.send(b'#')#題目出在ANS區
-                    c.send(self.question.encode())
+                    c.send(self.questiontext.encode())
                 else:#不是選中的人
                     c.send(b'#')# 提示在ANS區
                     c.send(notu.encode())
