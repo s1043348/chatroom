@@ -8,12 +8,13 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import serverwindow_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtGui import QFont, QStandardItemModel, QStandardItem #by Wei
 from time import gmtime, strftime
 
 
 class DataBaseChatRoom:
     def __init__(self):
-        self.client = MongoClient('192.168.43.120', 27017)  # 比较常用
+        self.client = MongoClient('localhost', 27017)  # 比较常用
         self.database = self.client["ChatRoom"]  # SQL: Database Name
         self.collection = self.database["user"]  # SQL: Table Name
 
@@ -85,6 +86,9 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         self.pushButton.clicked.connect(self.Input)
         self.pushButton_2.clicked.connect(self.DelUser)
         self.pushButton_question.clicked.connect(self.QuestionInput)#送出問題按鍵
+        global namelist #by Wei
+        namelist = []# by Wei
+        self.model = QStandardItemModel() # by Wei
 
     def checkConnection(self):#監聽進入Client
         connection, addr = self.sock.accept()#接收
@@ -229,8 +233,17 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         #dbChatRoom.colseClient()
         user = self.lineEdit.text()
         print(user)
+        namelist.append(user)
         psw = self.lineEdit_2.text()
         dbChatRoom.insertUser(user, psw)
+        self.model.clear()
+        for task in namelist:
+            item = QStandardItem(task)
+            item.setFont(QFont("微軟正黑體", 20))
+            item.setCheckState(0)
+            item.setCheckable(True)
+            self.model.appendRow(item)
+            self.listView.setModel(self.model)
         self.lineEdit.setText('')
         self.lineEdit_2.setText('')
 
@@ -246,7 +259,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
 def main():  # by ChenPo
     app = QApplication(sys.argv)
-    MainWindow = Server('192.168.43.120', 5550)
+    MainWindow = Server('localhost', 5550)
     th1 = threading.Thread(target=MainWindow.loopCheckConnect)
     th1.start()
     MainWindow.show()
