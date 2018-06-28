@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 import serverwindow_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtGui import QFont, QStandardItemModel, QStandardItem #by Wei
+import time
 from time import gmtime, strftime
 
 
@@ -91,6 +92,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         namelist = []# by Wei
         self.model = QStandardItemModel() # by Wei
         self.userlist = []
+        self.scorelist = []
 
     def checkConnection(self):#監聽進入Client
         connection, addr = self.sock.accept()#接收
@@ -103,7 +105,8 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
             buf = connection.recv(1024).decode()
             if buf == '1':
                 Username = connection.recv(1024).decode()#by ChenPo
-                self.userlist.append((Username, 0))
+                self.userlist.append(Username )
+                self.scorelist.append(self.count)
                 welcome = "Weclome to Chat room, " + Username + "!\n"# 給登入者
                 connection.send(welcome.encode())#by ChenPo
                 lets = "Now Lets Chat " + Username#by ChenPo
@@ -184,7 +187,17 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                         recvedMsg = myconnection.recv(1024).decode()
                         # self.tellOthers(connNumber, '#')
                         if recvedMsg == self.question:  # 代表答對了
+                            self.scorelist[self.mylist.index(myconnection)] = self.scorelist[self.mylist.index(myconnection)] + 10
+                            for c in self.mylist:
+                                print("HELLO")
+                                c.send(b'^')
+                                c.send(str(self.userlist).encode())
+                                c.send(str(self.scorelist).encode())
+                                time.sleep(0.5)
+                            time.sleep(1)
                             self.tellHit(connNumber, myname + "You Hit!!!!!!!")
+
+
                         else:  # 沒答對就跟一般對話一樣
                             nowtime = datetime.datetime.now()
                             self.tellnoHit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
@@ -215,6 +228,8 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         for c in self.mylist:
             c.send(b'^')
             c.send(str(self.userlist).encode())
+            c.send(str(self.scorelist).encode())
+        time.sleep(1)
         self.questiontext = "****Please paint : "+self.lineEdit_question.text()+"****"
         self.question = self.lineEdit_question.text()
         notu="****Question****"
