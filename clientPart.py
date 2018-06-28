@@ -145,6 +145,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             self.sock.send(b'+')
             self.pos_xy.clear()
             self.sock.sendall(str(self.pos_xy).encode())
+            self.pushButton_ans.setEnabled(True)
+            self.lineEdit_ans.setEnabled(True)
             self.update()
 
     def updateclick(self):
@@ -192,11 +194,13 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     if 'paint' in answord.decode():
                         self.contorl = True
                         self.count_thread.start()
+                        self.pushButton_ans.setEnabled(False)
                         self.lineEdit_ans.setEnabled(False)
                     elif 'Question' in answord.decode():
                         self.count_thread.start()
-                    elif 'hit' in answord.decode():
+                    elif 'Hit' in answord.decode():
                         self.lineEdit_ans.setEnabled(False)
+                        self.pushButton_ans.setEnabled(False)
                 elif '%' in buf:
                     opration = self.sock.recv(1024).decode()
                     if opration == 'Countdown':
