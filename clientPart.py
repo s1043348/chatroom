@@ -94,7 +94,23 @@ class DataCaptureThread(QThread):  #by ping
          loop = QEventLoop()
          loop.exec_()
 """
+class CountDownThread(QThread):
+    set_max = pyqtSignal(int)
+    update = pyqtSignal(int)
+    test = 0
 
+    def __init__(self):
+        QThread.__init__(self)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        count = 30
+        while count >= 0:
+            self.update.emit(count)
+            count -= 1
+            time.sleep(1)
 
 class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
@@ -116,6 +132,12 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
         self.pos_xy = []
         self.contorl = False
+        self.count_thread = CountDownThread()
+        self.count_thread.update.connect(self.Set_Value)
+
+
+    def Set_Value(self, data):
+        self.label_remain_t.setText("剩餘時間: " + str(data) + "秒")
 
     def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
@@ -194,6 +216,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def send(self):
         self.contorl = True
+        self.count_thread.start()
         text = self.lineEdit_4.text()  # Send message lineEdit by ChenPo
         if text == '':
             text = ' '
