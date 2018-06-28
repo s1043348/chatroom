@@ -192,6 +192,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     if 'paint' in answord.decode():
                         self.contorl = True
                         self.count_thread.start()
+                        self.lineEdit_ans.setEnabled(False)
                     elif 'Question' in answord.decode():
                         self.count_thread.start()
                     elif 'hit' in answord.decode():
