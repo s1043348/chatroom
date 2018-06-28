@@ -17,7 +17,7 @@ from bson.objectid import ObjectId
 
 class DataBaseChatRoom:
     def __init__(self):
-        self.client = MongoClient('localhost', 27017)  # 比较常用
+        self.client = MongoClient('192.168.43.120', 27017)  # 比较常用
         self.database = self.client["ChatRoom"]  # SQL: Database Name
         self.collection = self.database["user"]  # SQL: Table Name
 
@@ -179,6 +179,9 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                             point_start = point_end
                     painter.end()
                     self.update()
+                elif '$' in buf:
+                    people_num = self.sock.recv(1024).decode()
+                    self.label.setText("目前聊天室有" + str(people_num) + "人")
 
                 else:
                     self.textBrowser.append(buf)
@@ -264,7 +267,7 @@ def main():#by ChenPo
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    MainWindow = Main('localhost', 5550)
+    MainWindow = Main('192.168.43.120', 5550)
     MainWindow.show()
     sys.exit(app.exec_())
     #main()#by ChenPo
