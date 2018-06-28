@@ -75,9 +75,9 @@ class Ui_MainWindow(object):
         self.pushButton_2.setGeometry(QtCore.QRect(125, 140, 105, 30))
         self.pushButton_2.setObjectName("pushButton_2")
 
-        self.listView = QtWidgets.QListView(self.centralwidget)  # score board on the left side
-        self.listView.setGeometry(QtCore.QRect(5, 200, 235, 500))
-        self.listView.setObjectName("listView")
+        self.tableView = QtWidgets.QTableView(self.centralwidget)  # score board on the left side
+        self.tableView.setGeometry(QtCore.QRect(5, 200, 235, 500))
+        self.tableView.setObjectName("tableView")
 
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)  # Chat room
         self.textBrowser.setGeometry(QtCore.QRect(1190, 5, 235, 320))
@@ -131,4 +131,4 @@ class Ui_MainWindow(object):
         self.pushButton_3.setText(_translate("MainWindow", "Send"))
         self.pushButton_ans.setText(_translate("Mainwindow", "Ans"))
         self.label_turn.setText(_translate("MainWindow", "目前輪到 某某某 出題"))
-        self.label_remain_t.setText(_translate("MainWindow", "剩餘時間: 17 秒"))
+        self.label_remain_t.setText(_translate("MainWindow", "剩餘時間: 30 秒"))
