@@ -138,6 +138,11 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def Set_Value(self, data):
         self.label_remain_t.setText("剩餘時間: " + str(data) + "秒")
+        if(data == 0):
+            self.contorl = False
+            painter = QPainter()
+            painter.end()
+            self.update()
 
     def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
@@ -181,6 +186,12 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
+                elif '%' in buf:
+                    opration = self.sock.recv(1024).decode()
+                    if opration == 'Countdown':
+                        self.count_thread.start()
+                    elif opration == 'Draw':
+                        self.contorl = True
                 elif '+' in buf:
                     posxy = self.sock.recv(1024000000).decode()
                     self.pos_xy = eval(posxy)
