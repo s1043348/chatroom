@@ -211,6 +211,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                 elif '^' in buf:
                     member_list_str = self.sock.recv(5000).decode()
                     self.member_list = eval(member_list_str)
+                    self.member_list[0]
+                    print(self.member_list)
                 elif '+' in buf:
                     posxy = self.sock.recv(1024000000).decode()
                     self.pos_xy = eval(posxy)
