@@ -131,6 +131,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.setMouseTracking(False)
         # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
         self.pos_xy = []
+        self.member_list = []
         self.contorl = False
         self.count_thread = CountDownThread()
         self.count_thread.update.connect(self.Set_Value)
@@ -207,6 +208,9 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                         self.count_thread.start()
                     elif opration == 'Draw':
                         self.contorl = True
+                elif '^' in buf:
+                    member_list_str = self.sock.recv(5000).decode()
+                    self.member_list = eval(member_list_str)
                 elif '+' in buf:
                     posxy = self.sock.recv(1024000000).decode()
                     self.pos_xy = eval(posxy)
