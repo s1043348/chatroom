@@ -189,6 +189,13 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
+                    if 'paint' in answord.decode():
+                        self.contorl = True
+                        self.count_thread.start()
+                    elif 'Question' in answord.decode():
+                        self.count_thread.start()
+                    elif 'hit' in answord.decode():
+                        self.lineEdit_ans.setEnabled(False)
                 elif '%' in buf:
                     opration = self.sock.recv(1024).decode()
                     if opration == 'Countdown':
@@ -229,7 +236,6 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                 pass
 
     def send(self):
-        self.contorl = True
         self.count_thread.start()
         text = self.lineEdit_4.text()  # Send message lineEdit by ChenPo
         if text == '':
