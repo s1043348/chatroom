@@ -3,6 +3,7 @@ import socket
 import threading
 import datetime
 import sys
+import random
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import serverwindow_ui
@@ -66,11 +67,13 @@ class DataBaseChatRoom:
         self.client.close()
 
 
+
+
 class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
     def __init__(self, host, port):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        sock = socket.socket()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock = sock
         self.sock.bind((host, port))
         self.sock.listen(5)
@@ -81,32 +84,35 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         self.mylist = list()
         self.pushButton.clicked.connect(self.Input)
         self.pushButton_2.clicked.connect(self.DelUser)
+        self.pushButton_question.clicked.connect(self.QuestionInput)#送出問題按鍵
 
-    def checkConnection(self):
-        connection, addr = self.sock.accept()
+    def checkConnection(self):#監聽進入Client
+        connection, addr = self.sock.accept()#接收
         self.count += 1
+        self.tellALLcount()
         print(self.count)
         print('Accept a new connection', connection.getsockname(), connection.fileno())
 
         try:
             buf = connection.recv(1024).decode()
-            # print(buf+'<<')
             if buf == '1':
-                Username = connection.recv(1024).decode()  # by ChenPo
-                welcome = "Weclome to Chat room, " + Username + "!\n"  # by ChenPo
-                connection.send(welcome.encode())  # by ChenPo
-                lets = "Now Lets Chat " + Username  # by ChenPo
-                connection.send(lets.encode())  # by ChenPo
-                self.tellOthers(connection.fileno(), 'SYSTEM: ' + Username + ' in the Chatroom.')  # by ChenPo
+                Username = connection.recv(1024).decode()#by ChenPo
+                welcome = "Weclome to Chat room, " + Username + "!\n"# 給登入者
+                connection.send(welcome.encode())#by ChenPo
+                lets = "Now Lets Chat " + Username#by ChenPo
+                connection.send(lets.encode())#by ChenPo
+
+                self.tellOthers(connection.fileno(),'SYSTEM: ' + Username + ' in the Chatroom.')#給其他使用者
+
                 # start a thread for new connection
                 mythread = threading.Thread(target=self.subThreadIn, args=(connection, Username, connection.fileno()))
                 mythread.setDaemon(True)
                 mythread.start()
 
-
             else:
                 connection.send(b'please go out!')
                 self.count -= 1
+                self.tellALLcount()
                 self.tellOthers(connection.fileno(), "New chat room people number " + str(self.count))
                 print(self.count)
                 print("Someone leave! Chat room")
@@ -114,12 +120,45 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         except:
             pass
 
+
     # send whatToSay to every except people in exceptNum
-    def tellOthers(self, exceptNum, whatToSay):
+    def tellOthers(self, exceptNum, whatToSay):#廣播
         for c in self.mylist:
             if c.fileno() != exceptNum:
                 try:
-                    c.sendall(whatToSay.encode())
+                    c.send(whatToSay.encode())
+                except:
+                    pass
+
+    def tellALLcount(self):#更新人數
+        for c in self.mylist:
+            try:
+                c.send(b'$')
+                c.send(str(self.count).encode())
+            except:
+                pass
+
+    def tellHit(self, exceptNum, whatToSay):  # 答題成功廣播
+        for c in self.mylist:
+            if c.fileno() == exceptNum:#答對的人
+                try:
+                    c.send(b'#')
+                    c.send(whatToSay.encode())
+                except:
+                    pass
+            else:#沒答對的人
+                try:
+                    c.send(b'#')
+                    c.send("************".encode())
+                except:
+                    pass
+
+    def tellnoHit(self, exceptNum, whatToSay):  # 答題錯誤廣播
+        for c in self.mylist:
+            if c.fileno() != exceptNum:#傳給答錯題以外的人
+                try:
+                    c.send(b'#')
+                    c.send(whatToSay.encode())
                 except:
                     pass
 
@@ -128,32 +167,25 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
         while True:
             try:
-                buf = myconnection.recv(1024).decode()
-                if buf == '*':  # chat room
-                    nowtime = datetime.datetime.now()#by ChenPo
-                    recvedMsg = myconnection.recv(1024).decode()
-                    self.tellOthers(connNumber, '*')
-                    self.tellOthers(connNumber,
-                                    myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(
-                                        nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(
-                                        2) + " ]")  # by ChenPo
-                elif buf == '+':  # draw sync.
-                    draw = myconnection.recv(10241024).decode()
-                    self.tellOthers(connNumber, '+')
-                    self.tellOthers(connNumber, draw)
-                elif buf == '#':  # ans room
-                    nowtime = datetime.datetime.now()  # by ChenPo
-                    recvedMsg = myconnection.recv(1024).decode()
-                    self.tellOthers(connNumber, '#')
-                    self.tellOthers(connNumber,
-                                    myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(
-                                        nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(
-                                        2) + " ]")  # by ChenPo
+                Buf = myconnection.recv(1024).decode()#聊天室訊息
+                if Buf:
+                    if Buf=='*':# 聊天區
+                        recvedMsg = myconnection.recv(1024).decode()
+                        nowtime = datetime.datetime.now()  # by ChenPo
+                        self.tellOthers(connNumber, myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(2) + " ]")  # by ChenPo
+                    elif Buf =='#':#答案區
+                        recvedMsg = myconnection.recv(1024).decode()
+                        if recvedMsg==self.question:#代表答對了
+                            self.tellHit(connNumber,myname,"You Hit!!!!!!!")
+                        else:#沒答對就跟一般對話一樣
+                            nowtime = datetime.datetime.now()
+                            self.tellnohit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
                 else:
                     pass
 
             except (OSError, ConnectionResetError):
                 self.count -= 1
+                self.tellALLcount()
                 self.tellOthers(connNumber, "New chat room people number " + str(self.count))
                 print("Someone leave! Chat room")
                 print("Chat room people number: ", self.count)
@@ -167,9 +199,29 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                 myconnection.close()
                 return
 
-    def Input(self):
+    def QuestionInput(self):#問題傳送
+        self.question = "****Please paint : "+self.lineEdit_question.text()+"****"
+        notu="****Question****"
+        self.lineEdit_question.setText('')
+        run=0
+        numrandom=random.randint(0, self.count-1)
+        if self.count>=1:
+            for c in self.mylist:
+                if run==numrandom:#找到選中的人
+                    c.send(b'#')#題目出在ANS區
+                    c.send(self.question.encode())
+                else:#不是選中的人
+                    c.send(b'#')# 提示在ANS區
+                    c.send(notu.encode())
+                    c.send(str(numrandom).encode())
+                    run=run+1
+                    print(numrandom)
+        else:
+            pass
+
+    def Input(self):#server端加入使用者
         dbChatRoom = DataBaseChatRoom()
-        # dbChatRoom.colseClient()
+        #dbChatRoom.colseClient()
         user = self.lineEdit.text()
         print(user)
         psw = self.lineEdit_2.text()
