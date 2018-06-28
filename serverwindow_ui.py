@@ -59,21 +59,9 @@ class Ui_MainWindow(object):
         self.listView.setGeometry(QtCore.QRect(5, 100, 470, 500))
         self.listView.setObjectName("listView")
 
-        self.model = QStandardItemModel()       #user name checkbox in listview
-        tsklist = [u'A', u'B', u'C', u'D', u'E']
-        #tsklist[0], tsklist[1] = tsklist[1], tsklist[0] #simple swap case
-        for task in tsklist:
-            item = QStandardItem(task)
-            item.setFont(QFont("微軟正黑體", 20))
-            item.setCheckState(False)
-            item.setCheckable(True)
-            self.model.appendRow(item)
-            self.listView.setModel(self.model)
-
         """
         self.check = QtWidgets.QCheckBox("hello", self.listView)
         self.check.setFont(QFont("微軟正黑體", 20))
-
         self.check2 = QtWidgets.QCheckBox("~~~~~~~~~~", self.check)
         self.check2.setFont(QFont("微軟正黑體", 20))
         """
@@ -103,4 +91,3 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "Kick"))
         self.label_question.setText(_translate("MainWindow", "題目"))
         self.pushButton_question.setText(_translate("MainWindow", "出題"))
-
