@@ -213,7 +213,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         notu="****Question****"
         self.lineEdit_question.setText('')
         run=0
-        numrandom=random.randint(0, self.count-1)
+        numrandom=random.randint(0, len(self.mylist)-1)
         if self.count>=1:
             for c in self.mylist:
                 if run==numrandom:#找到選中的人
@@ -222,9 +222,9 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                 else:#不是選中的人
                     c.send(b'#')# 提示在ANS區
                     c.send(notu.encode())
-                    c.send(str(numrandom).encode())
-                    run=run+1
-                    print(numrandom)
+                    #c.send(str(numrandom).encode())
+                run=run+1
+                #print(numrandom)
         else:
             pass
 
