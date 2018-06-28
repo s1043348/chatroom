@@ -142,6 +142,9 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             self.contorl = False
             painter = QPainter()
             painter.end()
+            self.sock.send(b'+')
+            self.pos_xy.clear()
+            self.sock.sendall(str(self.pos_xy).encode())
             self.update()
 
     def updateclick(self):
