@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 import socket
 import threading
 import datetime
@@ -14,7 +13,7 @@ from time import gmtime, strftime
 
 class DataBaseChatRoom:
     def __init__(self):
-        self.client = MongoClient('192.168.43.120', 27017)  # 比较常用
+        self.client = MongoClient('localhost', 27017)  # 比较常用
         self.database = self.client["ChatRoom"]  # SQL: Database Name
         self.collection = self.database["user"]  # SQL: Table Name
 
@@ -91,6 +90,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         global namelist #by Wei
         namelist = []# by Wei
         self.model = QStandardItemModel() # by Wei
+        self.userlist = []
 
     def checkConnection(self):#監聽進入Client
         connection, addr = self.sock.accept()#接收
@@ -103,6 +103,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
             buf = connection.recv(1024).decode()
             if buf == '1':
                 Username = connection.recv(1024).decode()#by ChenPo
+                self.userlist.append((Username, 0))
                 welcome = "Weclome to Chat room, " + Username + "!\n"# 給登入者
                 connection.send(welcome.encode())#by ChenPo
                 lets = "Now Lets Chat " + Username#by ChenPo
@@ -211,6 +212,9 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                 return
 
     def QuestionInput(self):#問題傳送
+        for c in self.mylist:
+            c.send(b'^')
+            c.send(str(self.userlist).encode())
         self.questiontext = "****Please paint : "+self.lineEdit_question.text()+"****"
         self.question = self.lineEdit_question.text()
         notu="****Question****"
@@ -250,6 +254,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         self.lineEdit.setText('')
         self.lineEdit_2.setText('')
 
+
     def loopCheckConnect(self): #by ChenPo
         while True:
             print("wait for somebody...\n")
@@ -262,7 +267,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
 def main():  # by ChenPo
     app = QApplication(sys.argv)
-    MainWindow = Server('192.168.43.120', 5550)
+    MainWindow = Server('localhost', 5550)
     th1 = threading.Thread(target=MainWindow.loopCheckConnect)
     th1.start()
     MainWindow.show()
