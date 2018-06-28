@@ -14,7 +14,7 @@ from time import gmtime, strftime
 
 class DataBaseChatRoom:
     def __init__(self):
-        self.client = MongoClient('localhost', 27017)  # 比较常用
+        self.client = MongoClient('192.168.43.120', 27017)  # 比较常用
         self.database = self.client["ChatRoom"]  # SQL: Database Name
         self.collection = self.database["user"]  # SQL: Table Name
 
@@ -86,6 +86,8 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         self.pushButton.clicked.connect(self.Input)
         self.pushButton_2.clicked.connect(self.DelUser)
         self.pushButton_question.clicked.connect(self.QuestionInput)#送出問題按鍵
+        self.questiontext = "你吃大便猜三小這是初始化"
+        self.question = "幹你老師猜三小這是初始化"
         global namelist #by Wei
         namelist = []# by Wei
         self.model = QStandardItemModel() # by Wei
@@ -179,12 +181,12 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                         self.tellOthers(connNumber, myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(2) + " ]")  # by ChenPo
                     elif Buf == '#':  # 答案區
                         recvedMsg = myconnection.recv(1024).decode()
-                        self.tellOthers(connNumber, '#')
+                        # self.tellOthers(connNumber, '#')
                         if recvedMsg == self.question:  # 代表答對了
                             self.tellHit(connNumber, myname + "You Hit!!!!!!!")
                         else:  # 沒答對就跟一般對話一樣
                             nowtime = datetime.datetime.now()
-                            self.tellnohit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
+                            self.tellnoHit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
                     elif Buf == '+':  # 畫畫區
                         recvedMsg = myconnection.recv(1024000000).decode()
                         self.tellOthers(connNumber, '+')
@@ -260,7 +262,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
 def main():  # by ChenPo
     app = QApplication(sys.argv)
-    MainWindow = Server('localhost', 5550)
+    MainWindow = Server('192.168.43.120', 5550)
     th1 = threading.Thread(target=MainWindow.loopCheckConnect)
     th1.start()
     MainWindow.show()
