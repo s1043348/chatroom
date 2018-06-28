@@ -99,16 +99,16 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
     def __init__(self, host, port):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        socktemp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    #by ChenPo
-        self.sock = socktemp    #by ChenPo
-        self.sock.connect((host, port)) #by ChenPo
-        self.sock.send(b'1')    ##by ChenPo
-        self.pushButton_3.setText("Send") ##by ChenPo
-        self.pushButton_3.setEnabled(False)#by ChenPo
-        self.pushButton_2.setEnabled(False)#by ChenPo
-        self.pushButton.clicked.connect(self.onClick)#by ChenPo ##這顆是login
+        socktemp = socket.socket()    # by ChenPo
+        self.sock = socktemp    # by ChenPo
+        self.sock.connect((host, port))  # by ChenPo
+        self.sock.send(b'1')    # by ChenPo
+        self.pushButton_3.setText("Send")  # by ChenPo
+        self.pushButton_3.setEnabled(False)  # by ChenPo
+        self.pushButton_2.setEnabled(False)  # by ChenPo
+        self.pushButton.clicked.connect(self.onClick)  # by ChenPo ##這顆是login
         self.pushButton_2.clicked.connect(self.updateclick)
-        self.pushButton_3.clicked.connect(self.send)#by ChenPo
+        self.pushButton_3.clicked.connect(self.send)  # by ChenPo
         self.pushButton_ans.clicked.connect(self.ans)  # by ChenPo
         self.setMouseTracking(False)
         # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
@@ -125,29 +125,30 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         dbChatRoom = DataBaseChatRoom()
         userID = self.lineEdit.text()
         userPSWD = self.lineEdit_2.text()
-        GameBegin = False  ## by ping
+        GameBegin = False  # by ping
         if dbChatRoom.checkUserExist(userID):
             if(dbChatRoom.checkAccountAandPassword(userID, userPSWD)):
                 GameBegin = True
         else:
-            dbChatRoom.insertUser(userID, userPSWD) #update database by client
+            dbChatRoom.insertUser(userID, userPSWD) # update database by client
             GameBegin = True
         if GameBegin:
             self.sock.send(userID.encode())
             self.textBrowser.update()
-            self.lineEdit_2.setEnabled(False)   #pswd lineEdit disabled
-            self.lineEdit.setEnabled(False) #username lineEdit disabled
-            self.pushButton.setEnabled(False)   #Login button disabled
-            self.pushButton_3.setEnabled(True)  #Send button enabled
-            self.pushButton_2.setEnabled(True)  #Change pswd enabled
-            th2 = threading.Thread(target=self.recv)#by ChenPo
-            th2.setDaemon(True)#by ChenPo
-            th2.start()#by ChenP
-    def recv(self):#by ChenPo
+            self.lineEdit_2.setEnabled(False)   # pswd lineEdit disabled
+            self.lineEdit.setEnabled(False)  # username lineEdit disabled
+            self.pushButton.setEnabled(False)   # Login button disabled
+            self.pushButton_3.setEnabled(True)  # Send button enabled
+            self.pushButton_2.setEnabled(True)  # Change pswd enabled
+            th2 = threading.Thread(target=self.recv)  # by ChenPo
+            th2.setDaemon(True)  # by ChenPo
+            th2.start()  # by ChenPo
+
+    def recv(self):  # by ChenPo
         while True:
             try:
                 buf = self.sock.recv(1024).decode()
-                #made by ping
+                # made by ping
                 if '*' in buf:
                     messageword = self.sock.recv(1024)
                     self.textBrowser.append(messageword.decode())
@@ -156,8 +157,9 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     answord = self.sock.recv(1024)
                     self.textBrowser_ans.append(answord.decode())
                     self.textBrowser_ans.update()
-                elif '@' in buf:
-                    posxy = self.sock.recv(1024).decode()
+                elif '+' in buf:
+                    posxy = self.sock.recv(10240000).decode()
+                    self.pos_xy = self.pos_xy + eval(posxy)
                     painter = QPainter()
                     painter.begin(self)
                     pen = QPen(Qt.black, 2, Qt.SolidLine)
@@ -176,6 +178,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                             painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
                             point_start = point_end
                     painter.end()
+
                 else:
                     self.textBrowser.append(buf)
                     self.textBrowser.update()
@@ -185,28 +188,27 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
     def send(self):
         self.contorl = True
-        text = self.lineEdit_4.text()#Send message lineEdit by ChenPo
-        self.sock.send(b'*')#made by ping
-        if text == '':           #by ping
+        text = self.lineEdit_4.text()  # Send message lineEdit by ChenPo
+        if text == '':
             text = ' '
-        self.sock.send(text.encode())   ##by ChenPo
-        text = userID + ' : ' + text#by ChenPo
-        #text = "{: >70}".format(text)#by ChenPo
-        self.textBrowser.append(text)#by ChenPo
-        self.textBrowser.update()#by ChenPo
-        self.lineEdit_4.setText("")#by ChenPo
+        self.sock.send(b'*')  # made by ping
+        self.sock.send(text.encode())   # by ChenPo
+        text = userID + ' : ' + text  # by ChenPo
+        # text = "{: >70}".format(text) #by ChenPo
+        self.textBrowser.append(text)  # by ChenPo
+        self.textBrowser.update()  # by ChenPo
+        self.lineEdit_4.setText("")  # by ChenPo
 
     def ans(self):
         text = self.lineEdit_ans.text()  # Send message lineEdit by ping
-        if text == '': #by ping
+        if text == '':
             text = ' '
-        self.sock.send(b'#')#made by ping
-        self.sock.send(text.encode())  ##by ping
+        self.sock.send(b'#')  # made by ping
+        self.sock.send(text.encode())  # by ping
         text = userID + ' : ' + text  # by ping
         self.textBrowser_ans.append(text)  # by ping
         self.textBrowser_ans.update()  # by ping
         self.lineEdit_ans.setText("")  # by ping
-
 
     def paintEvent(self, event):
         if self.contorl:
@@ -241,8 +243,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
             pos_test = (-1, -1)
             self.pos_xy.append(pos_test)
             self.update()
-            self.sock.send(b'@')
-            self.sock.send(str(self.pos_xy).encode())
+            self.sock.send(b'+')
+            self.sock.sendall(str(self.pos_xy).encode())
 
 
 
