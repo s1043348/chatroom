@@ -185,6 +185,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
                             for c in self.mylist:
                                 print("HELLO")
                                 c.send(b'^')
+                                time.sleep(0.5)
                                 c.send(str(self.userlist).encode())
                                 c.send(str(self.scorelist).encode())
                                 time.sleep(0.5)
