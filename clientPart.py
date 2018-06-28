@@ -1,21 +1,18 @@
-# -*- encoding: utf-8 -*-
-import socket
-import threading
-import datetime
+from PyQt5.QtWidgets import QMainWindow, QApplication
+import clientwindow_ui
 import sys
-import random
-
+import threading
+import socket
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QEventLoop
+from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import (QApplication, QWidget)
+from PyQt5.QtGui import (QPainter, QPen)
+from PyQt5.QtCore import Qt
 import time
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QVBoxLayout, QFormLayout, QProgressBar
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtCore import QDateTime
-from PyQt5.QtCore import QTimer
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from PyQt5 import QtCore
-import serverwindow_ui
-from PyQt5.QtWidgets import QMainWindow, QApplication
-from time import gmtime, strftime
+
+
 
 
 class DataBaseChatRoom:
@@ -30,27 +27,46 @@ class DataBaseChatRoom:
 
     # delete user by uname
     # dbChatRoom.deleteUser(['A'])
-    def deleteUser(self, unameList):
-        self.collection.remove({'uname': unameList})
+    def deleteUser(self, unameList=None):
+        pass
+        return 'successful'
 
     # insert user
     # dbChatRoom.insertUser(uname='A', upwd='A')
     def insertUser(self, uname, upwd):
-        self.collection.insert_one({'uname': uname, 'upwd': upwd})
-        print("Server: user added!!")
+        self.collection.insert_one({'uname':uname, 'upwd':upwd})
+        print("Client: user added!!")
 
-    def updataUser(self, uname=None, upwd=None):
-        pass
+    def updataUser(self, uname, upwd):
+        temp = self.collection.find_one({'uname': uname})
+        temp['upwd'] = upwd
+        self.collection.save(temp)
+        msg = QMessageBox()  ## by ping
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("密碼修改成功")
+        msg.setWindowTitle("密碼修改成功")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
         return 'successful'
 
     # check checkUserExist
     def checkUserExist(self, uname):
-        temp = self.collection.find({'uname': uname})
-        if temp:
+        if self.collection.find({'uname': uname}).count() > 0:
+            return True
+        return False
+
+        # check checkUserExist
+    def checkAccountAandPassword(self, uname, upwd):  # by ping
+        if self.collection.find({'uname': uname, 'upwd':upwd}).count() > 0:
             return True
         else:
-            return False
-
+            msg = QMessageBox()  ## by ping
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("您輸入的帳號已存在 且帳號與密碼不匹配")
+            msg.setWindowTitle("錯誤")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+        return False
     # query user bu uname
     # dbChatRoom.queryByuname(uname='A', upwd='A')
     def queryByuname(self, uname='A', upwd='A'):
@@ -60,461 +76,200 @@ class DataBaseChatRoom:
     # Init database
     # dbChatRoom.Initdatabase()
     def Initdatabase(self):
-        self.collection.delete_many({})
-        userList = []
-        userList.append({'uname': 'A', 'upwd': 'A'})
-        userList.append({'uname': 'B', 'upwd': 'B'})
-        userList.append({'uname': 'C', 'upwd': 'C'})
-        userList.append({'uname': 'D', 'upwd': 'D'})
-        userList.append({'uname': 'E', 'upwd': 'E'})
-        self.collection.insert_many(userList)
-        print("Server: initialize database!!")
+        pass
 
     def colseClient(self):
         self.client.close()
+"""
+class DataCaptureThread(QThread):  #by ping
+     def collectProcessData(self):
+         print("Collecting Process Data")
+     def __init__(self, *args, **kwargs):
+         QThread.__init__(self, *args, **kwargs)
+         self.dataCollectionTimer = QTimer()
+         self.dataCollectionTimer.moveToThread(self)
+         self.dataCollectionTimer.timeout.connect(self.collectProcessData)
+     def run(self):
+         self.dataCollectionTimer.start(1000)
+         loop = QEventLoop()
+         loop.exec_()
+"""
 
 
+class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
 
-
-class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
     def __init__(self, host, port):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock = sock
-        self.sock.bind((host, port))
-        self.sock.listen(5)
-        print('Server', socket.gethostbyname(host), 'listening ...')
+        socktemp = socket.socket()    # by ChenPo
+        self.sock = socktemp    # by ChenPo
+        self.sock.connect((host, port))  # by ChenPo
+        self.sock.send(b'1')    # by ChenPo
+        self.pushButton_3.setText("Send")  # by ChenPo
+        self.pushButton_3.setEnabled(False)  # by ChenPo
+        self.pushButton_2.setEnabled(False)  # by ChenPo
+        self.pushButton.clicked.connect(self.onClick)  # by ChenPo ##這顆是login
+        self.pushButton_2.clicked.connect(self.updateclick)
+        self.pushButton_3.clicked.connect(self.send)  # by ChenPo
+        self.pushButton_ans.clicked.connect(self.ans)  # by ChenPo
+        self.setMouseTracking(False)
+        # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
+        self.pos_xy = []
+        self.contorl = False
+
+    def updateclick(self):
         dbChatRoom = DataBaseChatRoom()
-        dbChatRoom.Initdatabase()   #reset database 剩下user A, B, C, D, E
-        self.count = 0
-        self.mylist = list()
-        self.pushButton.clicked.connect(self.Input)
-        self.pushButton_2.clicked.connect(self.DelUser)
-        self.pushButton_question.clicked.connect(self.QuestionInput)#送出問題按鍵
-        self.countThread = CountDownThread()
-        self.countThread.start()
+        dbChatRoom.updataUser(self.lineEdit.text(), self.lineEdit_3.text())
+        self.lineEdit_3.setText("")
 
+    def onClick(self):
+        global userID
+        dbChatRoom = DataBaseChatRoom()
+        userID = self.lineEdit.text()
+        userPSWD = self.lineEdit_2.text()
+        GameBegin = False  # by ping
+        if dbChatRoom.checkUserExist(userID):
+            if(dbChatRoom.checkAccountAandPassword(userID, userPSWD)):
+                GameBegin = True
+        else:
+            dbChatRoom.insertUser(userID, userPSWD) # update database by client
+            GameBegin = True
+        if GameBegin:
+            self.sock.send(userID.encode())
+            self.textBrowser.update()
+            self.lineEdit_2.setEnabled(False)   # pswd lineEdit disabled
+            self.lineEdit.setEnabled(False)  # username lineEdit disabled
+            self.pushButton.setEnabled(False)   # Login button disabled
+            self.pushButton_3.setEnabled(True)  # Send button enabled
+            self.pushButton_2.setEnabled(True)  # Change pswd enabled
+            th2 = threading.Thread(target=self.recv)  # by ChenPo
+            th2.setDaemon(True)  # by ChenPo
+            th2.start()  # by ChenPo
 
-    def checkConnection(self):#監聽進入Client
-        connection, addr = self.sock.accept()#接收
-        self.count += 1
-        self.tellALLcount()
-        print(self.count)
-        print('Accept a new connection', connection.getsockname(), connection.fileno())
-
-        try:
-            buf = connection.recv(1024).decode()
-            if buf == '1':
-                Username = connection.recv(1024).decode()#by ChenPo
-                welcome = "Weclome to Chat room, " + Username + "!\n"# 給登入者
-                connection.send(welcome.encode())#by ChenPo
-                lets = "Now Lets Chat " + Username#by ChenPo
-                connection.send(lets.encode())#by ChenPo
-
-                self.tellOthers(connection.fileno(),'SYSTEM: ' + Username + ' in the Chatroom.')#給其他使用者
-
-                # start a thread for new connection
-                mythread = threading.Thread(target=self.subThreadIn, args=(connection, Username, connection.fileno()))
-                mythread.setDaemon(True)
-                mythread.start()
-
-            else:
-                connection.send(b'please go out!')
-                self.count -= 1
-                self.tellALLcount()
-                self.tellOthers(connection.fileno(), "New chat room people number " + str(self.count))
-                print(self.count)
-                print("Someone leave! Chat room")
-                connection.close()
-        except:
-            pass
-
-
-    # send whatToSay to every except people in exceptNum
-    def tellOthers(self, exceptNum, whatToSay):#廣播
-        for c in self.mylist:
-            if c.fileno() != exceptNum:
-                try:
-                    c.send(whatToSay.encode())
-                except:
-                    pass
-
-    def tellALLcount(self):#更新人數
-        for c in self.mylist:
+    def recv(self):  # by ChenPo
+        while True:
             try:
-                c.send(b'$')
-                c.send(str(self.count).encode())
+                buf = self.sock.recv(1024).decode()
+                # made by ping
+                if '*' in buf:
+                    messageword = self.sock.recv(1024)
+                    self.textBrowser.append(messageword.decode())
+                    self.textBrowser.update()
+                elif '#' in buf:
+                    answord = self.sock.recv(1024)
+                    self.textBrowser_ans.append(answord.decode())
+                    self.textBrowser_ans.update()
+                elif '+' in buf:
+                    posxy = self.sock.recv(1024000000).decode()
+                    self.pos_xy = eval(posxy)
+                    painter = QPainter()
+                    painter.begin(self)
+                    pen = QPen(Qt.black, 2, Qt.SolidLine)
+                    painter.setPen(pen)
+                    if len(self.pos_xy) > 1:
+                        point_start = self.pos_xy[0]
+                        for pos_tmp in self.pos_xy:
+                            point_end = pos_tmp
+                            if point_end == (-1, -1):
+                                point_start = (-1, -1)
+                                continue
+                            if point_start == (-1, -1):
+                                point_start = point_end
+                                continue
+
+                            painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
+                            point_start = point_end
+                    painter.end()
+                    self.update()
+                elif '$' in buf:
+                    people_num = self.sock.recv(1024).decode()
+                    self.label.setText("目前聊天室有" + str(people_num) + "人")
+
+                else:
+                    self.textBrowser.append(buf)
+                    self.textBrowser.update()
+                buf = None
             except:
                 pass
 
-    def tellHit(self, exceptNum, whatToSay):  # 答題成功廣播
-        for c in self.mylist:
-            if c.fileno() == exceptNum:#答對的人
-                try:
-                    c.send(b'#')
-                    c.send(whatToSay.encode())
-                except:
-                    pass
-            else:#沒答對的人
-                try:
-                    c.send(b'#')
-                    c.send("************".encode())
-                except:
-                    pass
+    def send(self):
+        self.contorl = True
+        text = self.lineEdit_4.text()  # Send message lineEdit by ChenPo
+        if text == '':
+            text = ' '
+        self.sock.send(b'*')  # made by ping
+        self.sock.send(text.encode())   # by ChenPo
+        text = userID + ' : ' + text  # by ChenPo
+        # text = "{: >70}".format(text) #by ChenPo
+        self.textBrowser.append(text)  # by ChenPo
+        self.textBrowser.update()  # by ChenPo
+        self.lineEdit_4.setText("")  # by ChenPo
 
-    def tellnoHit(self, exceptNum, whatToSay):  # 答題錯誤廣播
-        for c in self.mylist:
-            if c.fileno() != exceptNum:#傳給答錯題以外的人
-                try:
-                    c.send(b'#')
-                    c.send(whatToSay.encode())
-                except:
-                    pass
+    def ans(self):
+        text = self.lineEdit_ans.text()  # Send message lineEdit by ping
+        if text == '':
+            text = ' '
+        self.sock.send(b'#')  # made by ping
+        self.sock.send(text.encode())  # by ping
+        text = userID + ' : ' + text  # by ping
+        self.textBrowser_ans.append(text)  # by ping
+        self.textBrowser_ans.update()  # by ping
+        self.lineEdit_ans.setText("")  # by ping
 
-    def subThreadIn(self, myconnection, myname,  connNumber):
-        self.mylist.append(myconnection)
+    def paintEvent(self, event):
+        if self.contorl:
+            painter = QPainter()
+            painter.begin(self)
+            pen = QPen(Qt.black, 2, Qt.SolidLine)
+            painter.setPen(pen)
+            if len(self.pos_xy) > 1:
+                point_start = self.pos_xy[0]
+                for pos_tmp in self.pos_xy:
+                    point_end = pos_tmp
+                    if point_end == (-1, -1):
+                        point_start = (-1, -1)
+                        continue
+                    if point_start == (-1, -1):
+                        point_start = point_end
+                        continue
 
-        while True:
-            try:
-                Buf = myconnection.recv(1024).decode()#聊天室訊息
-                if Buf:
-                    if Buf=='*':# 聊天區
-                        recvedMsg = myconnection.recv(1024).decode()
-                        nowtime = datetime.datetime.now()  # by ChenPo
-                        self.tellOthers(connNumber, myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(2) + " ]")  # by ChenPo
-                    elif Buf =='#':#答案區
-                        recvedMsg = myconnection.recv(1024).decode()
-                        if recvedMsg==self.question:#代表答對了
-                            self.tellHit(connNumber,myname,"You Hit!!!!!!!")
-                        else:#沒答對就跟一般對話一樣
-                            nowtime = datetime.datetime.now()
-                            self.tellnohit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
-                else:
-                    pass
+                    painter.drawLine(point_start[0], point_start[1], point_end[0], point_end[1])
+                    point_start = point_end
+            painter.end()
 
-            except (OSError, ConnectionResetError):
-                self.count -= 1
-                self.tellALLcount()
-                self.tellOthers(connNumber, "New chat room people number " + str(self.count))
-                print("Someone leave! Chat room")
-                print("Chat room people number: ", self.count)
+    def mouseMoveEvent(self, event):
+        if self.contorl:
+            pos_tmp = (event.pos().x(), event.pos().y())
+            # pos_tmp新增到self.pos_xy中
+            self.pos_xy.append(pos_tmp)
+            self.update()
 
-                try:
-                    self.mylist.remove(myconnection)
-
-                except:
-                    pass
-
-                myconnection.close()
-                return
-
-    def QuestionInput(self):#問題傳送
-        self.question = "****Please paint : "+self.lineEdit_question.text()+"****"
-        notu="****Question****"
-        self.lineEdit_question.setText('')
-        run=0
-        numrandom=random.randint(0, self.count-1)
-        if self.count>=1:
-            for c in self.mylist:
-                if run==numrandom:#找到選中的人
-                    c.send(b'#')#題目出在ANS區
-                    c.send(self.question.encode())
-                else:#不是選中的人
-                    c.send(b'#')# 提示在ANS區
-                    c.send(notu.encode())
-                    c.send(str(numrandom).encode())
-                    run=run+1
-                    print(numrandom)
-        else:
-            pass
-
-    def Input(self):#server端加入使用者
-        dbChatRoom = DataBaseChatRoom()
-        #dbChatRoom.colseClient()
-        user = self.lineEdit.text()
-        print(user)
-        psw = self.lineEdit_2.text()
-        dbChatRoom.insertUser(user, psw)
-        self.lineEdit.setText('')
-        self.lineEdit_2.setText('')
-
-    def loopCheckConnect(self): #by ChenPo
-        while True:
-            print("wait for somebody...\n")
-            self.checkConnection()
-            print("somebody in!!\n")
-
-    def DelUser(self):  #by ChenPo, not done yet
-        dbChatRoom = DataBaseChatRoom()
-
-# -*- encoding: utf-8 -*-
-import socket
-import threading
-import datetime
-import sys
-import random
-from pymongo import MongoClient
-from bson.objectid import ObjectId
-import serverwindow_ui
-from PyQt5.QtWidgets import QMainWindow, QApplication
-from time import gmtime, strftime
-
-
-class DataBaseChatRoom:
-    def __init__(self):
-        self.client = MongoClient('192.168.43.120', 27017)  # 比较常用
-        self.database = self.client["ChatRoom"]  # SQL: Database Name
-        self.collection = self.database["user"]  # SQL: Table Name
-
-    def loadData(self):
-        pass
-        return None
-
-    # delete user by uname
-    # dbChatRoom.deleteUser(['A'])
-    def deleteUser(self, unameList):
-        self.collection.remove({'uname': unameList})
-
-    # insert user
-    # dbChatRoom.insertUser(uname='A', upwd='A')
-    def insertUser(self, uname, upwd):
-        self.collection.insert_one({'uname': uname, 'upwd': upwd})
-        print("Server: user added!!")
-
-    def updataUser(self, uname=None, upwd=None):
-        pass
-        return 'successful'
-
-    # check checkUserExist
-    def checkUserExist(self, uname):
-        temp = self.collection.find({'uname': uname})
-        if temp:
-            return True
-        else:
-            return False
-
-    # query user bu uname
-    # dbChatRoom.queryByuname(uname='A', upwd='A')
-    def queryByuname(self, uname='A', upwd='A'):
-        pass
-        return False
-
-    # Init database
-    # dbChatRoom.Initdatabase()
-    def Initdatabase(self):
-        self.collection.delete_many({})
-        userList = []
-        userList.append({'uname': 'A', 'upwd': 'A'})
-        userList.append({'uname': 'B', 'upwd': 'B'})
-        userList.append({'uname': 'C', 'upwd': 'C'})
-        userList.append({'uname': 'D', 'upwd': 'D'})
-        userList.append({'uname': 'E', 'upwd': 'E'})
-        self.collection.insert_many(userList)
-        print("Server: initialize database!!")
-
-    def colseClient(self):
-        self.client.close()
+    def mouseReleaseEvent(self, event):
+        if self.contorl:
+            pos_test = (-1, -1)
+            self.pos_xy.append(pos_test)
+            self.update()
+            self.sock.send(b'+')
+            self.sock.sendall(str(self.pos_xy).encode())
 
 
 
 
-class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
-    def __init__(self, host, port):
-        super(self.__class__, self).__init__()
-        self.setupUi(self)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock = sock
-        self.sock.bind((host, port))
-        self.sock.listen(5)
-        print('Server', socket.gethostbyname(host), 'listening ...')
-        dbChatRoom = DataBaseChatRoom()
-        dbChatRoom.Initdatabase()   #reset database 剩下user A, B, C, D, E
-        self.count = 0
-        self.mylist = list()
-        self.pushButton.clicked.connect(self.Input)
-        self.pushButton_2.clicked.connect(self.DelUser)
-        self.pushButton_question.clicked.connect(self.QuestionInput)#送出問題按鍵
-
-    def checkConnection(self):#監聽進入Client
-        connection, addr = self.sock.accept()#接收
-        self.count += 1
-        self.tellALLcount()
-        print(self.count)
-        print('Accept a new connection', connection.getsockname(), connection.fileno())
-
-        try:
-            buf = connection.recv(1024).decode()
-            if buf == '1':
-                Username = connection.recv(1024).decode()#by ChenPo
-                welcome = "Weclome to Chat room, " + Username + "!\n"# 給登入者
-                connection.send(welcome.encode())#by ChenPo
-                lets = "Now Lets Chat " + Username#by ChenPo
-                connection.send(lets.encode())#by ChenPo
-                self.tellOthers(connection.fileno(),'SYSTEM: ' + Username + ' in the Chatroom.')#給其他使用者
-
-                # start a thread for new connection
-                mythread = threading.Thread(target=self.subThreadIn, args=(connection, Username, connection.fileno()))
-                mythread.setDaemon(True)
-                mythread.start()
-
-            else:
-                connection.send(b'please go out!')
-                self.count -= 1
-                self.tellALLcount()
-                self.tellOthers(connection.fileno(), "New chat room people number " + str(self.count))
-                print(self.count)
-                print("Someone leave! Chat room")
-                connection.close()
-        except:
-            pass
-
-
-    # send whatToSay to every except people in exceptNum
-    def tellOthers(self, exceptNum, whatToSay):#廣播
-        for c in self.mylist:
-            if c.fileno() != exceptNum:
-                try:
-                    c.send(whatToSay.encode())
-                except:
-                    pass
-
-    def tellALLcount(self):#更新人數
-        for c in self.mylist:
-            try:
-                c.send(b'$')
-                c.send(str(self.count).encode())
-            except:
-                pass
-
-    def tellHit(self, exceptNum, whatToSay):  # 答題成功廣播
-        for c in self.mylist:
-            if c.fileno() == exceptNum:#答對的人
-                try:
-                    c.send(b'#')
-                    c.send(whatToSay.encode())
-                except:
-                    pass
-            else:#沒答對的人
-                try:
-                    c.send(b'#')
-                    c.send("************".encode())
-                except:
-                    pass
-
-    def tellnoHit(self, exceptNum, whatToSay):  # 答題錯誤廣播
-        for c in self.mylist:
-            if c.fileno() != exceptNum:#傳給答錯題以外的人
-                try:
-                    c.send(b'#')
-                    c.send(whatToSay.encode())
-                except:
-                    pass
-
-    def subThreadIn(self, myconnection, myname,  connNumber):
-        self.mylist.append(myconnection)
-
-        while True:
-            try:
-                Buf = myconnection.recv(1024).decode()  # 聊天室訊息
-                if Buf:
-                    if Buf == '*':  # 聊天區
-                        recvedMsg = myconnection.recv(1024).decode()
-                        nowtime = datetime.datetime.now()  # by ChenPo
-                        self.tellOthers(connNumber, '*')
-                        self.tellOthers(connNumber, myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(2) + " ]")  # by ChenPo
-                    elif Buf == '#':  # 答案區
-                        recvedMsg = myconnection.recv(1024).decode()
-                        self.tellOthers(connNumber, '#')
-                        if recvedMsg == self.question:  # 代表答對了
-                            self.tellHit(connNumber, myname + "You Hit!!!!!!!")
-                        else:  # 沒答對就跟一般對話一樣
-                            nowtime = datetime.datetime.now()
-                            self.tellnohit(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
-                    elif Buf == '+':  # 畫畫區
-                        recvedMsg = myconnection.recv(1024000000).decode()
-                        self.tellOthers(connNumber, '+')
-                        self.tellOthers(connNumber, recvedMsg)
-                else:
-                    pass
-
-            except (OSError, ConnectionResetError):
-                self.count -= 1
-                self.tellALLcount()
-                self.tellOthers(connNumber, "New chat room people number " + str(self.count))
-                print("Someone leave! Chat room")
-                print("Chat room people number: ", self.count)
-
-                try:
-                    self.mylist.remove(myconnection)
-
-                except:
-                    pass
-
-                myconnection.close()
-                return
-
-    def QuestionInput(self):#問題傳送
-        self.question = "****Please paint : "+self.lineEdit_question.text()+"****"
-        notu="****Question****"
-        self.lineEdit_question.setText('')
-        run=0
-        numrandom=random.randint(0, self.count-1)
-        if self.count>=1:
-            for c in self.mylist:
-                if run==numrandom:#找到選中的人
-                    c.send(b'#')#題目出在ANS區
-                    c.send(self.question.encode())
-                else:#不是選中的人
-                    c.send(b'#')# 提示在ANS區
-                    c.send(notu.encode())
-                    c.send(str(numrandom).encode())
-                    run=run+1
-                    print(numrandom)
-        else:
-            pass
-
-    def Input(self):#server端加入使用者
-        dbChatRoom = DataBaseChatRoom()
-        #dbChatRoom.colseClient()
-        user = self.lineEdit.text()
-        print(user)
-        psw = self.lineEdit_2.text()
-        dbChatRoom.insertUser(user, psw)
-        self.lineEdit.setText('')
-        self.lineEdit_2.setText('')
-
-    def loopCheckConnect(self): #by ChenPo
-        while True:
-            print("wait for somebody...\n")
-            self.checkConnection()
-            print("somebody in!!\n")
-
-    def DelUser(self):  #by ChenPo, not done yet
-        dbChatRoom = DataBaseChatRoom()
-
-
-def main():  # by ChenPo
-    app = QApplication(sys.argv)
-    MainWindow = Server('localhost', 5550)
-    th1 = threading.Thread(target=MainWindow.loopCheckConnect)
-    th1.start()
-    MainWindow.show()
-    sys.exit(app.exec_())
-
+"""
+def main():#by ChenPo
+    user = Main('localhost', 5550)
+    th1 = threading.Thread(target=user.send)
+    th2 = threading.Thread(target=user.recv)
+    threads = [th1, th2]
+    for i in threads:
+        i.setDaemon(True)
+        i.start()
+    i.join()
+"""
 
 if __name__ == "__main__":
-    main()
-
-def main():  # by ChenPo
     app = QApplication(sys.argv)
-    MainWindow = Server('localhost', 5550)
-    th1 = threading.Thread(target=MainWindow.loopCheckConnect)
-    th1.start()
+    MainWindow = Main('localhost', 5550)
     MainWindow.show()
     sys.exit(app.exec_())
-
-
-
-if __name__ == "__main__":
-    main()
+    #main()#by ChenPo
