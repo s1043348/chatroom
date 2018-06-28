@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import (QApplication, QWidget)
 from PyQt5.QtGui import (QPainter, QPen)
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QStandardItemModel, QStandardItem #by Wei
 import time
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -132,6 +133,7 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         # 要想將按住滑鼠後移動的軌跡保留在窗體上 需要一個列表來儲存所有移動過的點
         self.pos_xy = []
         self.member_list = []
+        self.model = QStandardItemModel(5,2 )
         self.contorl = False
         self.count_thread = CountDownThread()
         self.count_thread.update.connect(self.Set_Value)
@@ -202,6 +204,16 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                     elif 'Hit' in answord.decode():
                         self.lineEdit_ans.setEnabled(False)
                         self.pushButton_ans.setEnabled(False)
+                    #self.score = [1, 2]
+                    for i in range(len(self.member_list)):
+                        for j in range(self.model.columnCount()):
+                            item = QStandardItem()
+                            if j == 0:
+                                item.setData(self.member_list[i], Qt.DisplayRole)
+                            else:
+                                item.setData(self.score[i], Qt.DisplayRole)
+                            self.model.setItem(i, j, item)
+                    self.tableView.setModel(self.model)
                 elif '%' in buf:
                     opration = self.sock.recv(1024).decode()
                     if opration == 'Countdown':
@@ -211,7 +223,8 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
                 elif '^' in buf:
                     member_list_str = self.sock.recv(5000).decode()
                     self.member_list = eval(member_list_str)
-                    self.member_list[0]
+                    score_str = self.sock.recv(5000).decode()
+                    self.score = eval(score_str)
                     print(self.member_list)
                 elif '+' in buf:
                     posxy = self.sock.recv(1024000000).decode()
@@ -257,6 +270,20 @@ class Main(QMainWindow, clientwindow_ui.Ui_MainWindow):
         self.textBrowser.append(text)  # by ChenPo
         self.textBrowser.update()  # by ChenPo
         self.lineEdit_4.setText("")  # by ChenPo
+
+
+
+
+
+        """
+        for task in self.member_list:
+            item = QStandardItem(task)
+            item.setFont(QFont("微軟正黑體", 20))
+            self.model.setItem(self.model.rowCount() - i,self.model.columnCount() - j,item)
+            self.i = self.i+1
+            self.j = j+1
+
+    """
 
     def ans(self):
         text = self.lineEdit_ans.text()  # Send message lineEdit by ping
