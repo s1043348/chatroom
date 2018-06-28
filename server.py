@@ -70,7 +70,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
     def __init__(self, host, port):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock = socket.socket()
         self.sock = sock
         self.sock.bind((host, port))
         self.sock.listen(5)
@@ -90,13 +90,14 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
         try:
             buf = connection.recv(1024).decode()
+            # print(buf+'<<')
             if buf == '1':
-                Username = connection.recv(1024).decode()#by ChenPo
-                welcome = "Weclome to Chat room, " + Username + "!\n"#by ChenPo
-                connection.send(welcome.encode())#by ChenPo
-                lets = "Now Lets Chat " + Username#by ChenPo
-                connection.send(lets.encode())#by ChenPo
-                self.tellOthers(connection.fileno(),'SYSTEM: ' + Username + ' in the Chatroom.')#by ChenPo
+                Username = connection.recv(1024).decode()  # by ChenPo
+                welcome = "Weclome to Chat room, " + Username + "!\n"  # by ChenPo
+                connection.send(welcome.encode())  # by ChenPo
+                lets = "Now Lets Chat " + Username  # by ChenPo
+                connection.send(lets.encode())  # by ChenPo
+                self.tellOthers(connection.fileno(), 'SYSTEM: ' + Username + ' in the Chatroom.')  # by ChenPo
                 # start a thread for new connection
                 mythread = threading.Thread(target=self.subThreadIn, args=(connection, Username, connection.fileno()))
                 mythread.setDaemon(True)
@@ -118,7 +119,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
         for c in self.mylist:
             if c.fileno() != exceptNum:
                 try:
-                    c.send(whatToSay.encode())
+                    c.sendall(whatToSay.encode())
                 except:
                     pass
 
@@ -127,10 +128,27 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
         while True:
             try:
-                recvedMsg = myconnection.recv(1024).decode()
-                if recvedMsg:
+                buf = myconnection.recv(1024).decode()
+                if buf == '*':  # chat room
                     nowtime = datetime.datetime.now()#by ChenPo
-                    self.tellOthers(connNumber, myname + ": " + recvedMsg + "\t" + "[ " +str(nowtime.hour).zfill(2)+":" + str(nowtime.minute).zfill(2)+":"+str(nowtime.second).zfill(2)+" ]")#by ChenPo
+                    recvedMsg = myconnection.recv(1024).decode()
+                    self.tellOthers(connNumber, '*')
+                    self.tellOthers(connNumber,
+                                    myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(
+                                        nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(
+                                        2) + " ]")  # by ChenPo
+                elif buf == '+':  # draw sync.
+                    draw = myconnection.recv(10241024).decode()
+                    self.tellOthers(connNumber, '+')
+                    self.tellOthers(connNumber, draw)
+                elif buf == '#':  # ans room
+                    nowtime = datetime.datetime.now()  # by ChenPo
+                    recvedMsg = myconnection.recv(1024).decode()
+                    self.tellOthers(connNumber, '#')
+                    self.tellOthers(connNumber,
+                                    myname + ": " + recvedMsg + "\t" + "[ " + str(nowtime.hour).zfill(2) + ":" + str(
+                                        nowtime.minute).zfill(2) + ":" + str(nowtime.second).zfill(
+                                        2) + " ]")  # by ChenPo
                 else:
                     pass
 
@@ -151,7 +169,7 @@ class Server(QMainWindow, serverwindow_ui.Ui_MainWindow):
 
     def Input(self):
         dbChatRoom = DataBaseChatRoom()
-        #dbChatRoom.colseClient()
+        # dbChatRoom.colseClient()
         user = self.lineEdit.text()
         print(user)
         psw = self.lineEdit_2.text()
